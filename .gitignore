@@ -1,1 +1,4 @@
 /i3line
+
+# Object files
+*.o

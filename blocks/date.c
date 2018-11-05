@@ -1,4 +1,4 @@
-/* i3line block header
+/* i3line block: date
  * Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,22 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stdio.h>
+#include <time.h>
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#include "block.h"
 
-#define MAX_LEN 1024
-
-struct block {
-    const char *name;
-    const char *instance;
-    int (*update)(struct block *);
-    char full_text[MAX_LEN];
-    char short_text[MAX_LEN];
-    char color[MAX_LEN];
-    int urgent;
-};
-
-int date(struct block *);
-
-#endif /* BLOCK_H */
+int date(struct block *b) {
+    time_t now = time(NULL);
+    char str[256];
+    if (strftime(str, sizeof str, "%F %T", localtime(&now))) {
+        snprintf(b->full_text, sizeof b->full_text, "%s%s", "time_icon", str);
+        snprintf(b->short_text, sizeof b->short_text, "%s", str);
+        snprintf(b->color, sizeof b->color, "%s", "");
+        b->urgent = 0;
+        return 0;
+    }
+    return 1;
+}

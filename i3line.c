@@ -26,6 +26,8 @@
 
 #define DEBUG
 
+struct block blocks[] = { { "date", "", date } };
+
 static int cont = 1;
 static void handler(int signum) {
     /* end loop and exit on SIGHUP or SIGTERM
@@ -39,8 +41,9 @@ int update(const char *line) {
 #endif /* DEBUG */
     /* update output */
     json_object *arr = json_object_new_array();
-    for (struct block *block = *blocks; block != NULL; ++block) {
-        block->update(block);
+    for (struct block *b = blocks; b - blocks < sizeof blocks / sizeof (struct block); ++b) {
+        b->update(b);
+        printf("%s\n%s\n%s\n", b->full_text, b->short_text, b->color);
     }
     const char *str = json_object_to_json_string(arr);
     return printf(",%s\n", str);
