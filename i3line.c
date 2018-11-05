@@ -26,6 +26,9 @@
 
 #define DEBUG
 
+#define JSON_OBJECT_STRING_ADD(obj, key, from) \
+    json_object_object_add(obj, #key, json_object_new_string(from->key))
+
 struct block blocks[] = { { "date", "", date } };
 
 static int cont = 1;
@@ -35,18 +38,28 @@ static void handler(int signum) {
     if (signum != SIGUSR1) cont = 0;
 }
 
-int update(const char *line) {
+void update(const char *line) {
 #ifdef DEBUG
     if (line != NULL) fprintf(stderr, "got line: %s", line);
 #endif /* DEBUG */
     /* update output */
     json_object *arr = json_object_new_array();
-    for (struct block *b = blocks; b - blocks < sizeof blocks / sizeof (struct block); ++b) {
+    for (struct block *b = blocks;
+            b - blocks < sizeof blocks / sizeof (struct block); ++b) {
+        /* update block and append block JSON */
         b->update(b);
-        printf("%s\n%s\n%s\n", b->full_text, b->short_text, b->color);
+        json_object *obj = json_object_new_object();
+        JSON_OBJECT_STRING_ADD(obj, full_text, b);
+        if (strlen(b->short_text)) JSON_OBJECT_STRING_ADD(obj, short_text, b);
+        if (strlen(b->color)) JSON_OBJECT_STRING_ADD(obj, color, b);
+        json_object_object_add(obj, "urgent",
+                json_object_new_boolean(b->urgent));
+        json_object_array_add(arr, obj);
     }
     const char *str = json_object_to_json_string(arr);
-    return printf(",%s\n", str);
+    printf(",%s\n", str);
+    json_object_put(arr);
+    fflush(stdout);
 }
 
 int interval_loop(const int interval) {
@@ -121,6 +134,6 @@ int main(int argc, char *argv[]) {
     if (oa.sa_handler != SIG_IGN) sigaction(SIGUSR1, &sa, NULL);
 
     /* run loop */
-    const int interval = (argc > 1) ? atoi(argv[1]) : 4;
+    const int interval = (argc > 1) ? atoi(argv[1]) : 1;
     return interval_loop(interval);
 }
