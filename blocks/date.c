@@ -20,14 +20,16 @@
 #include "block.h"
 
 int date(struct block *b) {
-    time_t now = time(NULL);
-    char str[256];
-    if (strftime(str, sizeof str, "%F %T", localtime(&now))) {
-        snprintf(b->full_text, sizeof b->full_text, "%s%s", "time_icon", str);
-        snprintf(b->short_text, sizeof b->short_text, "%s", str);
-        snprintf(b->color, sizeof b->color, "%s", "");
-        b->urgent = 0;
-        return 0;
+    struct timespec now;
+    if (clock_gettime(CLOCK_REALTIME, &now) == -1) {
+        perror("clock_gettime()");
+        return 1;
     }
-    return 1;
+    char str[256];
+    if (!strftime(str, sizeof str, "%F %T", localtime(&now.tv_sec))) return 1;
+    snprintf(b->full_text, sizeof b->full_text, "%s%s", "time_icon", str);
+    snprintf(b->short_text, sizeof b->short_text, "%s", str);
+    snprintf(b->color, sizeof b->color, "%s", "");
+    b->urgent = 0;
+    return 0;
 }
