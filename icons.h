@@ -1,4 +1,4 @@
-/* i3line block header
+/* i3line icon definitions
  * Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef ICONS_H
+#define ICONS_H
 
-#include "icons.h"
+static const char disk_icon[] = " ";
+static const char wifi_icon[] = " ";
+static const char backlight_icon[] = " ";
+static const char load_icon[] = " ";
+static const char time_icon[] = " ";
+static const char player_icon[] = " ";
+static const char player_spotify_icon[] = " ";
+static const char player_icons[] = "   ";
+static const char volume_icons[] = "   ";
+static const char * const power_icons[] = {" "," "," "};
+static const char * const battery_icons[] = {" "," "," "," "," "};
+static const char * const temp_icons[] = {" "," "," "," "," "};
 
-#define MAX_LEN 1024
-
-struct block {
-    const char *name;
-    const char *instance;
-    int (*update)(struct block *);
-    char full_text[MAX_LEN];
-    char short_text[MAX_LEN];
-    char color[MAX_LEN];
-    int urgent;
-};
-
-int date(struct block *);
-
-#endif /* BLOCK_H */
+#endif /* ICONS_H */

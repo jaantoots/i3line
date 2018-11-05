@@ -7,7 +7,7 @@ OBJS := $(blocks:.c=.o) $(ALL:=.o)
 .PHONY: all
 all: $(ALL)
 
-$(OBJS): block.h
+$(OBJS): block.h icons.h colors.h
 
 i3line: LDLIBS := $(shell pkg-config --libs json-c)
 i3line: $(OBJS)
