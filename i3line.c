@@ -20,6 +20,9 @@
 #include <time.h>
 #include <signal.h>
 #include <sys/select.h>
+#include <json-c/json_object.h>
+
+#include "block.h"
 
 #define DEBUG
 
@@ -31,12 +34,27 @@ static void handler(int signum) {
 }
 
 int update(const char *line) {
+#ifdef DEBUG
+    if (line != NULL) fprintf(stderr, "got line: %s", line);
+#endif /* DEBUG */
     /* update output */
-    if (line != NULL) return printf("got line: %s", line);
-    return printf("meh\n");
+    json_object *arr = json_object_new_array();
+    for (struct block *block = *blocks; block != NULL; ++block) {
+        block->update(block);
+    }
+    const char *str = json_object_to_json_string(arr);
+    return printf(",%s\n", str);
 }
 
 int interval_loop(const int interval) {
+    /* initialize output */
+    printf("{\"version\": 1, \"click_events\": true}\n[\n");
+    json_object *arr = json_object_new_array();
+    const char *str = json_object_to_json_string(arr);
+    printf("%s\n", str); // placeholder so that commas can be prepended
+    json_object_put(arr);
+    fflush(stdout);
+
     /* update on input, signals, or aligned seconds */
     struct timespec now, next, timeout;
     if (clock_gettime(CLOCK_REALTIME, &next)) {
@@ -81,6 +99,8 @@ wait:;
             goto wait; // skip the empty update
         }
     }
+    /* finalize output */
+    printf("]\n");
     return 0;
 }
 
