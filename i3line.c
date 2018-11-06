@@ -43,11 +43,23 @@ int process_event(const char *line) {
     /* process input */
     if (line == NULL) return 0;
 #ifdef DEBUG
-    fprintf(stderr, "got line: %s", line);
+    fprintf(stderr, "%s", line);
 #endif /* DEBUG */
     while (*line != '\0' && *line != '{') ++line;
-    json_object *event = json_tokener_parse(line);
-    if (event == NULL) return 1;
+    if (!strlen(line)) return 0;
+    /* parse the input into a JSON object */
+    json_tokener *tok = json_tokener_new();
+    json_object *event = json_tokener_parse_ex(tok, line, -1);
+    enum json_tokener_error err = json_tokener_get_error(tok);
+    if (err != json_tokener_success) {
+        fprintf(stderr, "json_tokener: %s\n", json_tokener_error_desc(err));
+        return -1;
+    }
+    json_tokener_free(tok);
+    if (!json_object_is_type(event, json_type_object)) {
+        fprintf(stderr, "json_object: wrong object type\n");
+        return -1;
+    }
     /* set button for given block */
     const char *name = json_object_get_string(
             json_object_object_get(event, "name"));
@@ -61,7 +73,6 @@ int process_event(const char *line) {
             break;
         }
     }
-    fprintf(stderr, "reformat: %s\n", json_object_to_json_string(event));
     json_object_put(event);
     return 0;
 }
