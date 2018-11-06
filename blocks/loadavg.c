@@ -1,4 +1,4 @@
-/* i3line block: load
+/* i3line block: loadavg
  * Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
  *
  * This program is free software: you can redistribute it and/or modify

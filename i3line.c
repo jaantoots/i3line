@@ -31,8 +31,11 @@
     json_object_object_add(obj, #key, json_object_new_string(from->key))
 
 struct block blocks[] = {
-    {"battery", "", battery}, {"temperature", "", temperature},
-    {"loadavg", "", loadavg}, {"date", "", date}
+    {"disk", "", disk},
+    {"battery", "", battery},
+    {"temperature", "", temperature},
+    {"loadavg", "", loadavg},
+    {"date", "", date}
 };
 
 static int cont = 1;

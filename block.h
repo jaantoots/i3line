@@ -37,5 +37,6 @@ int date(struct block *);
 int loadavg(struct block *);
 int temperature(struct block *);
 int battery(struct block *);
+int disk(struct block *);
 
 #endif /* BLOCK_H */
