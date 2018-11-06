@@ -92,6 +92,7 @@ void update(const char *line) {
             b - blocks < sizeof blocks / sizeof (struct block); ++b) {
         /* update block and append block JSON */
         b->update(b);
+        if (!strlen(b->full_text)) continue;
         json_object *obj = json_object_new_object();
         JSON_OBJECT_STRING_ADD(obj, name, b);
         JSON_OBJECT_STRING_ADD(obj, instance, b);
