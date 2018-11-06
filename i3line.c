@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <json-c/json_object.h>
+#include <json-c/json_tokener.h>
 
 #include "block.h"
 
@@ -38,10 +39,39 @@ static void handler(int signum) {
     if (signum != SIGUSR1) cont = 0;
 }
 
-void update(const char *line) {
+int process_event(const char *line) {
+    /* process input */
+    if (line == NULL) return 0;
 #ifdef DEBUG
-    if (line != NULL) fprintf(stderr, "got line: %s", line);
+    fprintf(stderr, "got line: %s", line);
 #endif /* DEBUG */
+    while (*line != '\0' && *line != '{') ++line;
+    json_object *event = json_tokener_parse(line);
+    if (event == NULL) return 1;
+    /* set button for given block */
+    const char *name = json_object_get_string(
+            json_object_object_get(event, "name"));
+    const char *instance = json_object_get_string(
+            json_object_object_get(event, "instance"));
+    for (struct block *b = blocks;
+            b - blocks < sizeof blocks / sizeof (struct block); ++b) {
+        if (!strcmp(b->name, name) && !strcmp(b->instance, instance)) {
+            b->button = json_object_get_int(
+                    json_object_object_get(event, "button"));
+            break;
+        }
+    }
+    fprintf(stderr, "reformat: %s\n", json_object_to_json_string(event));
+    json_object_put(event);
+    return 0;
+}
+
+void update(const char *line) {
+    /* reset buttons and process click event */
+    for (struct block *b = blocks;
+            b - blocks < sizeof blocks / sizeof (struct block); ++b)
+        b->button = 0;
+    process_event(line);
     /* update output */
     json_object *arr = json_object_new_array();
     for (struct block *b = blocks;

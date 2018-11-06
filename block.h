@@ -29,6 +29,7 @@ struct block {
     char short_text[MAX_LEN];
     char color[MAX_LEN];
     int urgent;
+    int button;
 };
 
 int date(struct block *);
