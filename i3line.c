@@ -49,6 +49,8 @@ void update(const char *line) {
         /* update block and append block JSON */
         b->update(b);
         json_object *obj = json_object_new_object();
+        JSON_OBJECT_STRING_ADD(obj, name, b);
+        JSON_OBJECT_STRING_ADD(obj, instance, b);
         JSON_OBJECT_STRING_ADD(obj, full_text, b);
         if (strlen(b->short_text)) JSON_OBJECT_STRING_ADD(obj, short_text, b);
         if (strlen(b->color)) JSON_OBJECT_STRING_ADD(obj, color, b);
