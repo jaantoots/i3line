@@ -18,6 +18,7 @@
 #define BLOCK_H
 
 #include "icons.h"
+#include "colors.h"
 
 #define MAX_LEN 1024
 
@@ -33,5 +34,6 @@ struct block {
 };
 
 int date(struct block *);
+int loadavg(struct block *);
 
 #endif /* BLOCK_H */
