@@ -1,0 +1,99 @@
+/* i3line block: battery
+ * Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "block.h"
+
+#define BAT "/sys/class/power_supply/"
+#define BAT0 "BAT0"
+#define BAT_LOW 25
+#define BAT_CRITICAL 15
+#define BAT_URGENT 10
+
+#define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var)
+
+int batread(const char *dir, const char *fname, const char *fmt, void *value) {
+    /* read value from specified file */
+    char name[MAX_LEN] = {'\0'};
+    strncpy(name, dir, sizeof name - 1);
+    strncat(name, fname, sizeof name - strlen(name) - 1);
+    FILE *file = fopen(name, "r");
+    if (file == NULL) {
+        perror(name);
+        return 1;
+    }
+    fscanf(file, fmt, value);
+    if (ferror(file)) perror(name);
+    fclose(file);
+    return 0;
+}
+
+int battery(struct block *b) {
+    /* get battery path */
+    char dir[MAX_LEN];
+    snprintf(dir, sizeof dir, BAT "/%s/",
+            (strlen(b->instance) > 0) ? b->instance : BAT0);
+
+    /* read battery status values */
+    char *status;
+    long long capacity, charge_full, charge_now, current_now, voltage_now;
+    if (BATREAD(dir, "%ms", status)) return 0;
+    BATREAD(dir, "%Ld", capacity);
+    BATREAD(dir, "%Ld", charge_full);
+    BATREAD(dir, "%Ld", charge_now);
+    BATREAD(dir, "%Ld", current_now);
+    BATREAD(dir, "%Ld", voltage_now);
+
+    /* format block */
+    const char *icon = power_icons[0];
+    const char *color = "";
+    long long time = 0;
+    int low = BAT_LOW;
+    int critical = BAT_CRITICAL;
+    int urgent = BAT_URGENT;
+    if (!(strcmp(status, "Charging"))) {
+        icon = power_icons[1];
+        time = 3600*(charge_full - charge_now)/current_now;
+    }
+    else if (!(strcmp(status, "Full"))) {
+        icon = power_icons[2];
+        color = base0B;
+    }
+    else if (!(strcmp(status, "Discharging"))) {
+        icon = battery_icons[(capacity + 12)/25];
+        time = 3600*charge_now/current_now;
+        if (capacity <= critical) color = base08;
+        else if (capacity <= low) color = base0A;
+    }
+    free(status);
+
+    /* print block */
+    double percent = (double)100*charge_now/charge_full;
+    double power = (double)voltage_now*current_now/1e12;
+    if (time)
+        snprintf(b->full_text, sizeof b->full_text,
+                "%s%.2lf%% %02lld:%02lld %.1fW",
+                icon, percent, time/3600, (time % 3600)/60, power);
+    else
+        snprintf(b->full_text, sizeof b->full_text, "%s%.2lf%%", icon, percent);
+    snprintf(b->short_text, sizeof b->short_text, "%.2lf%%", percent);
+    snprintf(b->color, sizeof b->color, "%s", color);
+    b->urgent = (capacity <= urgent) ? 1 : 0;
+    return 0;
+}

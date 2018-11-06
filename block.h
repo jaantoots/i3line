@@ -35,5 +35,6 @@ struct block {
 
 int date(struct block *);
 int loadavg(struct block *);
+int battery(struct block *);
 
 #endif /* BLOCK_H */
