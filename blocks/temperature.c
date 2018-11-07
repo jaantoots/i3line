@@ -21,7 +21,6 @@
 #include "block.h"
 
 #define HWMON "/sys/devices/platform/coretemp.0/hwmon"
-#define MAXLEN 512
 #define TEMP_HIGH 70
 #define TEMP_CRITICAL 85
 #define TEMP_URGENT 95
@@ -29,23 +28,37 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
-int temperature(struct block *b) {
+int set_temperature_path(struct block *b) {
     /* find directory in HWMON as these end with a non-standard integer */
     DIR *dir = opendir(HWMON);
+    if (dir == NULL) {
+        perror("opendir()");
+        return -1;
+    }
     struct dirent *dp;
-    char hwmon[MAXLEN];
     while ((dp = readdir(dir)) != NULL) {
         if (dp->d_type == DT_DIR && !(strncmp(dp->d_name, "hwmon", 5))) {
-            snprintf(hwmon, sizeof hwmon, HWMON "/%s/temp1_input", dp->d_name);
-            break;
+            snprintf(b->path, sizeof b->path,
+                    HWMON "/%s/temp1_input", dp->d_name);
+            closedir(dir);
+            return 0;
         }
     }
     closedir(dir);
-    if (!(strlen(hwmon))) return 1;
+    return -1;
+}
+
+int temperature(struct block *b) {
+    if (b->state == BLOCK_RESET &&
+            (set_temperature_path(b) || !strlen(b->path) || (b->state = 0)))
+        return -1;
 
     /* read temperature */
-    FILE *ftemp = fopen(hwmon, "r");
-    if (ftemp == NULL) return 1;
+    FILE *ftemp = fopen(b->path, "r");
+    if (ftemp == NULL) {
+        perror("fopen()");
+        return -1;
+    }
     int temp;
     fscanf(ftemp, "%d", &temp);
     fclose(ftemp);

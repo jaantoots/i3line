@@ -48,7 +48,7 @@ int loadavg(struct block *b) {
     }
 
     double load[3];
-    if (getloadavg(load, b->state) != b->state) return 1;
+    if (getloadavg(load, b->state) != b->state) return -1;
 
     if (b->state == 3)
         snprintf(b->full_text, sizeof b->full_text, "%s%.2f %.2f %.2f",
