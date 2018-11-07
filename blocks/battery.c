@@ -30,13 +30,12 @@
 
 int batread(const char *dir, const char *fname, const char *fmt, void *value) {
     /* read value from specified file */
-    char name[MAX_LEN] = {'\0'};
-    strncpy(name, dir, sizeof name - 1);
-    strncat(name, fname, sizeof name - strlen(name) - 1);
+    char name[MAX_LEN];
+    snprintf(name, sizeof name, "%s/%s", dir, fname);
     FILE *file = fopen(name, "r");
     if (file == NULL) {
         perror(name);
-        return 1;
+        return -1;
     }
     fscanf(file, fmt, value);
     if (ferror(file)) perror(name);
@@ -45,20 +44,22 @@ int batread(const char *dir, const char *fname, const char *fmt, void *value) {
 }
 
 int battery(struct block *b) {
-    /* get battery path */
-    char dir[MAX_LEN];
-    snprintf(dir, sizeof dir, BAT "/%s/",
-            (strlen(b->instance) > 0) ? b->instance : BAT0);
+    /* set battery path */
+    if (b->state == BLOCK_RESET &&
+            ((snprintf(b->path, sizeof b->path, BAT "/%s",
+                       (strlen(b->instance) > 0) ? b->instance : BAT0) <= 0) ||
+             (b->state = 0)))
+        return -1;
 
     /* read battery status values */
     char *status;
     long long capacity, charge_full, charge_now, current_now, voltage_now;
-    if (BATREAD(dir, "%ms", status)) return 0;
-    BATREAD(dir, "%Ld", capacity);
-    BATREAD(dir, "%Ld", charge_full);
-    BATREAD(dir, "%Ld", charge_now);
-    BATREAD(dir, "%Ld", current_now);
-    BATREAD(dir, "%Ld", voltage_now);
+    if (BATREAD(b->path, "%ms", status)) return 0;
+    BATREAD(b->path, "%Ld", capacity);
+    BATREAD(b->path, "%Ld", charge_full);
+    BATREAD(b->path, "%Ld", charge_now);
+    BATREAD(b->path, "%Ld", current_now);
+    BATREAD(b->path, "%Ld", voltage_now);
 
     /* format block */
     const char *icon = power_icons[0];
@@ -67,23 +68,21 @@ int battery(struct block *b) {
     int low = BAT_LOW;
     int critical = BAT_CRITICAL;
     int urgent = BAT_URGENT;
-    if (!(strcmp(status, "Charging"))) {
+    if (!strcmp(status, "Charging")) {
         icon = power_icons[1];
         time = 3600*(charge_full - charge_now)/current_now;
     }
-    else if (!(strcmp(status, "Full"))) {
+    else if (!strcmp(status, "Full")) {
         icon = power_icons[2];
         color = base0B;
     }
-    else if (!(strcmp(status, "Discharging"))) {
+    else if (!strcmp(status, "Discharging")) {
         icon = battery_icons[(capacity + 12)/25];
         time = 3600*charge_now/current_now;
         if (capacity <= critical) color = base08;
         else if (capacity <= low) color = base0A;
     }
     free(status);
-
-    /* print block */
     double percent = (double)100*charge_now/charge_full;
     double power = (double)voltage_now*current_now/1e12;
     if (time)
