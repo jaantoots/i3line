@@ -40,9 +40,17 @@ struct block blocks[] = {
 
 static int cont = 1;
 static void handler(int signum) {
-    /* end loop and exit on SIGHUP or SIGTERM
-     * return from pselect on SIGUSR1 */
-    if (signum != SIGUSR1) cont = 0;
+    switch (signum) {
+        case SIGUSR1: // do nothing (return from pselect)
+            break;
+        case SIGUSR2: // reset blocks
+            for (struct block *b = blocks;
+                    b - blocks < sizeof blocks / sizeof (struct block); ++b)
+                b->state = BLOCK_RESET;
+            break;
+        default: // end loop and exit
+            cont = 0;
+    }
 }
 
 int process_event(const char *line) {
@@ -186,6 +194,8 @@ int main(int argc, char *argv[]) {
     if (oa.sa_handler != SIG_IGN) sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGUSR1, NULL, &oa);
     if (oa.sa_handler != SIG_IGN) sigaction(SIGUSR1, &sa, NULL);
+    sigaction(SIGUSR2, NULL, &oa);
+    if (oa.sa_handler != SIG_IGN) sigaction(SIGUSR2, &sa, NULL);
 
     /* run loop */
     const int interval = (argc > 1) ? atoi(argv[1]) : 1;
