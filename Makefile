@@ -14,4 +14,4 @@ i3line: $(OBJS)
 
 .PHONY: clean
 clean:
-	-rm $(ALL) $(OBJ)
+	-rm $(ALL) $(OBJS)
