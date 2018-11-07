@@ -120,6 +120,10 @@ int interval_loop(const int interval) {
     printf("%s\n", str); // placeholder so that commas can be prepended
     json_object_put(arr);
     fflush(stdout);
+    /* initialize blocks */
+    for (struct block *b = blocks;
+            b - blocks < sizeof blocks / sizeof (struct block); ++b)
+        b->state = BLOCK_RESET;
 
     /* update on input, signals, or aligned seconds */
     struct timespec now, next, timeout;

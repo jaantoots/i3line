@@ -31,7 +31,12 @@ struct block {
     char color[MAX_LEN];
     int urgent;
     int button;
+    /* optional variables */
+    int state;
+    char path[MAX_LEN];
 };
+
+enum block_state { BLOCK_RESET = -1 };
 
 int date(struct block *);
 int loadavg(struct block *);
