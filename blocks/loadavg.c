@@ -37,21 +37,20 @@ void htop() {
     }
 }
 
-int nelem = 1;
-
 int loadavg(struct block *b) {
+    if (b->state == BLOCK_RESET) b->state = 1;
     /* handle button */
     switch (b->button) {
-        case 1: nelem = (nelem == 1) ? 3 : 1;
+        case 1: b->state = (b->state == 1) ? 3 : 1;
                 break;
         case 3: htop();
                 break;
     }
 
     double load[3];
-    if (getloadavg(load, nelem) != nelem) return 1;
+    if (getloadavg(load, b->state) != b->state) return 1;
 
-    if (nelem == 3)
+    if (b->state == 3)
         snprintf(b->full_text, sizeof b->full_text, "%s%.2f %.2f %.2f",
                 load_icon, load[0], load[1], load[2]);
     else
