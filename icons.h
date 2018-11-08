@@ -17,6 +17,7 @@
 #ifndef ICONS_H
 #define ICONS_H
 
+static const char mail_icon[] = " ";
 static const char disk_icon[] = " ";
 static const char wifi_icon[] = " ";
 static const char backlight_icon[] = " ";
