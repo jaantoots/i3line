@@ -15,15 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <notmuch.h>
 
 #include "block.h"
 
 int notmuch(struct block *b) {
+    /* get notmuch database path */
+    if (b->state == BLOCK_RESET &&
+            ((snprintf(b->path, sizeof b->path, "%s/%s",
+                       (b->instance[0] != '/') ? getenv("HOME") : "",
+                       strlen(b->instance) ? b->instance : "mail") <= 0) ||
+             (b->state = 0)))
+        return -1;
+
     /* query notmuch database */
     notmuch_database_t *db;
-    if (notmuch_database_open("/home/jaan/.mail",
-                NOTMUCH_DATABASE_MODE_READ_ONLY, &db)
+    if (notmuch_database_open(b->path, NOTMUCH_DATABASE_MODE_READ_ONLY, &db)
             != NOTMUCH_STATUS_SUCCESS)
         return -1;
     unsigned int count;

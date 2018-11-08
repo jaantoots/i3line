@@ -31,7 +31,7 @@
     json_object_object_add(obj, #key, json_object_new_string(from->key))
 
 struct block blocks[] = {
-    {"notmuch", "", notmuch},
+    {"notmuch", ".mail", notmuch},
     {"disk", "", disk},
     {"battery", "", battery},
     {"temperature", "", temperature},
