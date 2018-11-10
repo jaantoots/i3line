@@ -33,6 +33,7 @@
 struct block blocks[] = {
     {"notmuch", ".mail", notmuch},
     {"disk", "", disk},
+    {"wifi", "", wifi},
     {"battery", "", battery},
     {"temperature", "", temperature},
     {"loadavg", "", loadavg},

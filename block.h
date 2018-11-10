@@ -36,12 +36,13 @@ struct block {
     char path[MAX_LEN];
 };
 
-enum block_state { BLOCK_RESET = -1 };
+enum block_state { BLOCK_RESET = -1, BLOCK_NOTAVAIL = -2 };
 
 int date(struct block *);
 int loadavg(struct block *);
 int temperature(struct block *);
 int battery(struct block *);
+int wifi(struct block *);
 int disk(struct block *);
 int notmuch(struct block *);
 
