@@ -21,6 +21,7 @@
 #include "colors.h"
 
 #define MAX_LEN 1024
+#define MAX_LEN_STR "1024"
 
 struct block {
     const char *name;

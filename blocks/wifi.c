@@ -16,13 +16,11 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <dirent.h>
-#include <sys/stat.h>
 #include <iwlib.h>
 
 #include "block.h"
 
-#define NET "/sys/class/net"
+#define NET "/proc/net/wireless"
 #define BITRATE_LOW 100*1e6
 #define BITRATE_HIGH 300*1e6
 
@@ -36,7 +34,10 @@ static int get_info(int skfd, char *ifname, struct wireless_info *info) {
         /* but let's check if the interface exists at all */
         struct ifreq ifr;
         memcpy(ifr.ifr_name, ifname, IFNAMSIZ);
-        if(ioctl(skfd, SIOCGIFFLAGS, &ifr) < 0) return -ENODEV;
+        if(ioctl(skfd, SIOCGIFFLAGS, &ifr) < 0) {
+            perror("ioctl()");
+            return -ENODEV;
+        }
         else return -ENOTSUP;
     }
     /* get bit rate */
@@ -53,25 +54,20 @@ int get_wireless_device(struct block *b) {
         return 0;
     }
     /* find wireless devices */
-    DIR *dir = opendir(NET);
-    if (dir == NULL) {
-        perror("opendir()");
+    FILE *fp = fopen(NET, "r");
+    if (fp == NULL) {
+        perror("fopen()");
         return -1;
     }
-    struct dirent *dp;
-    while ((dp = readdir(dir)) != NULL) {
-        if (!strncmp(dp->d_name, "wl", 2)) {
-            char ifdir[MAX_LEN];
-            snprintf(ifdir, sizeof ifdir, NET "/%s/wireless", dp->d_name);
-            struct stat buf;
-            if (!stat(ifdir, &buf)) {
-                strncpy(b->path, dp->d_name, sizeof b->path);
-                closedir(dir);
-                return 0;
-            }
-        }
-    }
-    closedir(dir);
+    /* discard first two lines */
+    if (fscanf(fp, "%*[^\n]\n%*[^\n]\n") == EOF) goto scan_error;
+    /* pick first wireless device */
+    if (fscanf(fp, "%" MAX_LEN_STR "[^:]", b->path) == EOF) goto scan_error;
+    fclose(fp);
+    return 0;
+scan_error:
+    perror(NET);
+    fclose(fp);
     return -1;
 }
 
@@ -95,8 +91,8 @@ int wifi(struct block *b) {
     iw_sockets_close(skfd);
 
     /* format output */
-    int low = BITRATE_LOW;
-    int high = BITRATE_HIGH;
+    long low = BITRATE_LOW;
+    long high = BITRATE_HIGH;
     b->urgent = 0;
     if (!err && info.b.essid_on) {
         snprintf(b->full_text, sizeof b->full_text, "%s%s %.3gGHz %.3gMbps",
