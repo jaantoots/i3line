@@ -9,7 +9,7 @@ all: $(ALL)
 
 $(OBJS): block.h icons.h colors.h
 
-i3line: LDLIBS := $(shell pkg-config --libs json-c) -liw -lnotmuch
+i3line: LDLIBS := -ljson-c -liw -lnotmuch
 i3line: $(OBJS)
 
 .PHONY: clean
