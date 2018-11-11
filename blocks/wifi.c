@@ -16,6 +16,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <ifaddrs.h>
 #include <iwlib.h>
 
 #include "block.h"
@@ -47,6 +48,40 @@ static int get_info(int skfd, char *ifname, struct wireless_info *info) {
     }
     return 0;
 }
+
+int get_inet(const char *ifname, char *host, char *host6) {
+    struct ifaddrs *ifaddr;
+    /* get linked list of network interfaces */
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs()");
+        return -1;
+    }
+    /* walk through the list to get inet and inet6 addresses */
+    for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL) continue;
+        if (strcmp(ifa->ifa_name, ifname)) continue;
+        int family = ifa->ifa_addr->sa_family;
+        int err;
+        if (family == AF_INET && (err = getnameinfo(ifa->ifa_addr,
+                        sizeof (struct sockaddr_in), host, NI_MAXHOST,
+                        NULL, 0, NI_NUMERICHOST))) {
+            fprintf(stderr, "getnameinfo(): %s\n", gai_strerror(err));
+            goto ifaddr_error;
+        }
+        if (family == AF_INET6 && (err = getnameinfo(ifa->ifa_addr,
+                        sizeof (struct sockaddr_in6), host6, NI_MAXHOST,
+                        NULL, 0, NI_NUMERICHOST))) {
+            fprintf(stderr, "getnameinfo(): %s\n", gai_strerror(err));
+            goto ifaddr_error;
+        }
+    }
+    freeifaddrs(ifaddr);
+    return 0;
+ifaddr_error:
+    freeifaddrs(ifaddr);
+    return -1;
+}
+
 
 int get_wireless_device(struct block *b) {
     if (strlen(b->instance)) {
@@ -90,16 +125,27 @@ int wifi(struct block *b) {
     /* close the socket. */
     iw_sockets_close(skfd);
 
+    /* get address */
+    char host[NI_MAXHOST] = {'\0'};
+    char host6[NI_MAXHOST] = {'\0'};
+    err |= get_inet(b->path, host, host6);
+
     /* format output */
     long low = BITRATE_LOW;
     long high = BITRATE_HIGH;
     b->urgent = 0;
     if (!err && info.b.essid_on) {
-        snprintf(b->full_text, sizeof b->full_text, "%s%s %.3gGHz %.3gMbps",
-                wifi_icon, info.b.essid, info.b.freq/1e9, info.bitrate.value/1e6);
+        snprintf(b->full_text, sizeof b->full_text, "%s%s %s %.3gGHz %.3gMbps",
+                wifi_icon,
+                (strlen(host)) ? host : host6,
+                info.b.essid,
+                info.b.freq/1e9,
+                (info.has_bitrate) ? info.bitrate.value/1e6 : 0);
         snprintf(b->short_text, sizeof b->short_text, "%s", info.b.essid);
         snprintf(b->color, sizeof b->color, "%s",
-                (info.bitrate.value < low) ? base0A : (info.bitrate.value < high) ? "" : base0B);
+                (strlen(host) && info.has_bitrate) ? (
+                    (info.bitrate.value < low) ? base0A :
+                    (info.bitrate.value < high) ? "" : base0B) : base08);
     }
     else {
         snprintf(b->full_text, sizeof b->full_text, "%s", wifi_icon);
