@@ -43,6 +43,7 @@ int date(struct block *);
 int loadavg(struct block *);
 int temperature(struct block *);
 int battery(struct block *);
+int backlight(struct block *);
 int wifi(struct block *);
 int disk(struct block *);
 int notmuch(struct block *);
