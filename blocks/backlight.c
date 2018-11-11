@@ -16,11 +16,25 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <dirent.h>
+#include <errno.h>
 
 #include "block.h"
 
 #define BACKLIGHT "/sys/class/backlight/intel_backlight"
+#define INC 0.01
+#define REPEAT 5
+
+int set_backlight(int *cur, int new, int max) {
+    FILE *fset = fopen(BACKLIGHT "/brightness", "w");
+    if (fset == NULL) {
+        perror("fopen()");
+        return (errno == EACCES) ? -EACCES : -1;
+    }
+    fprintf(fset, "%d", new);
+    if (ferror(fset)) new = *cur;
+    fclose(fset);
+    return *cur = new;
+}
 
 int backlight(struct block *b) {
     /* read backlight level */
@@ -42,6 +56,27 @@ int backlight(struct block *b) {
     fscanf(fmax, "%d", &max);
     if (ferror(fmax)) max = 0;
     fclose(fmax);
+
+    /* handle button */
+    if (b->state >= 0) --b->state;
+    int new = max;
+    float inc = INC;
+    switch (b->button) {
+        case 3:
+            if (cur > max/3) new = max/3;
+            else if (b->state < 0) new = 1;
+            if (set_backlight(&cur, new, max) > 0) b->state = REPEAT;
+            break;
+        case 4:
+            inc = -INC;
+        case 5:
+            new = (1 + inc)*cur;
+            if (new - cur == 0) new = cur + (inc > 0) ? 1 : -1;
+            if (new <= 0) new = 1;
+            if (new > max) new = max;
+            set_backlight(&cur, new, max);
+            break;
+    }
 
     /* print backlight */
     snprintf(b->full_text, sizeof b->full_text,
