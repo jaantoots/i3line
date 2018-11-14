@@ -24,7 +24,7 @@
 #define INC 0.01
 #define REPEAT 5
 
-int set_backlight(int *cur, int new, int max) {
+static int set_backlight(int *cur, int new, int max) {
     FILE *fset = fopen(BACKLIGHT "/brightness", "w");
     if (fset == NULL) {
         perror("fopen()");

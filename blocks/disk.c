@@ -25,7 +25,7 @@
 
 typedef unsigned long long fssize_t;
 
-int get_fssize(const char *path, fssize_t *avail, fssize_t *size) {
+static int get_fssize(const char *path, fssize_t *avail, fssize_t *size) {
     struct statvfs buf;
     if (statvfs(path, &buf)) {
         perror(path);

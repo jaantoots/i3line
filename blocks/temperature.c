@@ -28,7 +28,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
-int set_temperature_path(struct block *b) {
+static int set_temperature_path(struct block *b) {
     /* find directory in HWMON as these end with a non-standard integer */
     DIR *dir = opendir(HWMON);
     if (dir == NULL) {

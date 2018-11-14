@@ -30,7 +30,7 @@
 #define JSON_OBJECT_STRING_ADD(obj, key, from) \
     json_object_object_add(obj, #key, json_object_new_string(from->key))
 
-struct block blocks[] = {
+static struct block blocks[] = {
     {"notmuch", ".mail", notmuch},
     {"disk", "", disk},
     {"wifi", "", wifi},

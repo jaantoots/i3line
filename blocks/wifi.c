@@ -49,7 +49,7 @@ static int get_info(int skfd, char *ifname, struct wireless_info *info) {
     return 0;
 }
 
-int get_inet(const char *ifname, char *host, char *host6) {
+static int get_inet(const char *ifname, char *host, char *host6) {
     struct ifaddrs *ifaddr;
     /* get linked list of network interfaces */
     if (getifaddrs(&ifaddr) == -1) {
@@ -83,7 +83,7 @@ ifaddr_error:
 }
 
 
-int get_wireless_device(struct block *b) {
+static int get_wireless_device(struct block *b) {
     if (strlen(b->instance)) {
         strncpy(b->path, b->instance, sizeof b->path);
         return 0;

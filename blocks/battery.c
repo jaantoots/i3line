@@ -28,7 +28,7 @@
 
 #define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var)
 
-int batread(const char *dir, const char *fname, const char *fmt, void *value) {
+static int batread(const char *dir, const char *fname, const char *fmt, void *value) {
     /* read value from specified file */
     char name[MAX_LEN];
     snprintf(name, sizeof name, "%s/%s", dir, fname);

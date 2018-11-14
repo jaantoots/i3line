@@ -24,7 +24,7 @@
 
 #define TERMINAL "i3-sensible-terminal"
 
-void htop() {
+static void htop() {
     /* fork htop */
     int pid = fork();
     if (!(pid)) {
