@@ -34,6 +34,7 @@ static struct block blocks[] = {
     {"notmuch", ".mail", notmuch},
     {"disk", "", disk},
     {"wifi", "", wifi},
+    {"volume", "pulse", volume},
     {"backlight", "intel_backlight", backlight},
     {"battery", "", battery},
     {"temperature", "", temperature},
