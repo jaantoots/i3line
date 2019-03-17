@@ -7,7 +7,7 @@ OBJS := $(blocks:.c=.o) $(ALL:=.o)
 .PHONY: all
 all: $(ALL)
 
-$(OBJS): block.h icons.h colors.h
+$(OBJS): block.h icons.h colors.h utils.h
 
 i3line: LDLIBS := -ljson-c -liw -lnotmuch
 i3line: $(OBJS)

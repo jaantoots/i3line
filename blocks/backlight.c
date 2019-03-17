@@ -19,8 +19,9 @@
 #include <errno.h>
 
 #include "block.h"
+#include "utils.h"
 
-#define BACKLIGHT "/sys/class/backlight/intel_backlight"
+#define BACKLIGHT "/sys/class/backlight"
 #define INC 0.01
 #define REPEAT 5
 
@@ -37,25 +38,19 @@ static int set_backlight(int *cur, int new, int max) {
 }
 
 int backlight(struct block *b) {
+    /* set backlight path */
+    if (b->state == BLOCK_RESET &&
+            ((snprintf(b->path, sizeof b->path, BACKLIGHT "/%s",
+                       (strlen(b->instance) > 0) ? b->instance :
+                       "intel_backlight") <= 0) ||
+             (b->state = 0)))
+        return -1;
+
     /* read backlight level */
-    FILE *fcur = fopen(BACKLIGHT "/brightness", "r");
-    if (fcur == NULL) {
-        perror("fopen()");
+    int cur, max;
+    if (fscan_value(b->path, "brightness", "%d", &cur) ||
+            fscan_value(b->path, "max_brightness", "%d", &max))
         return -1;
-    }
-    int cur;
-    fscanf(fcur, "%d", &cur);
-    if (ferror(fcur)) cur = 0;
-    fclose(fcur);
-    FILE *fmax = fopen(BACKLIGHT "/max_brightness", "r");
-    if (fmax == NULL) {
-        perror("fopen()");
-        return -1;
-    }
-    int max;
-    fscanf(fmax, "%d", &max);
-    if (ferror(fmax)) max = 0;
-    fclose(fmax);
 
     /* handle button */
     if (b->state >= 0) --b->state;

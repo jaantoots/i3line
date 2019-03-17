@@ -19,29 +19,15 @@
 #include <string.h>
 
 #include "block.h"
+#include "utils.h"
 
-#define BAT "/sys/class/power_supply/"
+#define BAT "/sys/class/power_supply"
 #define BAT0 "BAT0"
 #define BAT_LOW 25
 #define BAT_CRITICAL 15
 #define BAT_URGENT 10
 
-#define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var)
-
-static int batread(const char *dir, const char *fname, const char *fmt, void *value) {
-    /* read value from specified file */
-    char name[MAX_LEN];
-    snprintf(name, sizeof name, "%s/%s", dir, fname);
-    FILE *file = fopen(name, "r");
-    if (file == NULL) {
-        perror(name);
-        return -1;
-    }
-    fscanf(file, fmt, value);
-    if (ferror(file)) perror(name);
-    fclose(file);
-    return 0;
-}
+#define BATREAD(dir, fmt, var) fscan_value(dir, #var, fmt, &var)
 
 int battery(struct block *b) {
     /* set battery path */
