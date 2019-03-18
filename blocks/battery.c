@@ -27,8 +27,6 @@
 #define BAT_CRITICAL 15
 #define BAT_URGENT 10
 
-#define BATREAD(dir, fmt, var) fscan_value(dir, #var, fmt, &var)
-
 int battery(struct block *b) {
     /* set battery path */
     if (b->state == BLOCK_RESET &&
@@ -40,12 +38,17 @@ int battery(struct block *b) {
     /* read battery status values */
     char *status;
     long long capacity, charge_full, charge_now, current_now, voltage_now;
-    if (BATREAD(b->path, "%ms", status)) return 0;
-    BATREAD(b->path, "%Ld", capacity);
-    BATREAD(b->path, "%Ld", charge_full);
-    BATREAD(b->path, "%Ld", charge_now);
-    BATREAD(b->path, "%Ld", current_now);
-    BATREAD(b->path, "%Ld", voltage_now);
+    if (fscan_value(b->path, "status", "%ms", &status)) return -1;
+    if (fscan_value(b->path, "capacity", "%Ld", &capacity)) return -2;
+    if (fscan_value(b->path, "charge_full", "%Ld", &charge_full) &&
+            fscan_value(b->path, "energy_full", "%Ld", &charge_full)) return -2;
+    if (fscan_value(b->path, "charge_now", "%Ld", &charge_now) &&
+            fscan_value(b->path, "energy_now", "%Ld", &charge_now)) return -2;
+    if (fscan_value(b->path, "voltage_now", "%Ld", &voltage_now)) return -1;
+    if (fscan_value(b->path, "current_now", "%Ld", &current_now)) {
+        if (fscan_value(b->path, "power_now", "%Ld", &current_now)) return -2;
+        voltage_now = 1e6;
+    }
 
     /* format block */
     const char *icon = power_icons[0];
