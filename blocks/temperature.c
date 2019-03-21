@@ -19,6 +19,7 @@
 #include <dirent.h>
 
 #include "block.h"
+#include "utils.h"
 
 #define HWMON "/sys/devices/platform/coretemp.0/hwmon"
 #define TEMP_HIGH 70
@@ -32,14 +33,14 @@ static int set_temperature_path(struct block *b) {
     /* find directory in HWMON as these end with a non-standard integer */
     DIR *dir = opendir(HWMON);
     if (dir == NULL) {
-        perror("opendir()");
+        perror(HWMON);
         return -1;
     }
     struct dirent *dp;
     while ((dp = readdir(dir)) != NULL) {
         if (dp->d_type == DT_DIR && !(strncmp(dp->d_name, "hwmon", 5))) {
             snprintf(b->path, sizeof b->path,
-                    HWMON "/%s/temp1_input", dp->d_name);
+                    HWMON "/%s", dp->d_name);
             closedir(dir);
             return 0;
         }
@@ -54,14 +55,8 @@ int temperature(struct block *b) {
         return -1;
 
     /* read temperature */
-    FILE *ftemp = fopen(b->path, "r");
-    if (ftemp == NULL) {
-        perror("fopen()");
-        return -1;
-    }
     int temp;
-    fscanf(ftemp, "%d", &temp);
-    fclose(ftemp);
+    if (fscan_value(b->path, "temp1_input", "%d", &temp)) return -1;
     temp /= 1000;
 
     /* print and format temperature */
