@@ -1,4 +1,5 @@
-CFLAGS := -O2 -Wall -I.
+CFLAGS ?= -O2
+CFLAGS += -Wall -I.
 
 blocks := $(wildcard blocks/*.c)
 ALL := i3line
