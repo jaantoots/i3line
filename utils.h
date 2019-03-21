@@ -31,10 +31,14 @@ static int fscan_value(const char *dir, const char *fname,
         perror(name);
         return -1;
     }
-    fscanf(file, fmt, value);
-    if (ferror(file)) perror(name);
+    int err = 0;
+    if (fscanf(file, fmt, value) < 0) err = -1;
+    if (ferror(file)) {
+        perror(name);
+        return -1;
+    }
     fclose(file);
-    return 0;
+    return err;
 }
 
 #endif /* UTILS_H */
