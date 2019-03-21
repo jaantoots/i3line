@@ -75,9 +75,9 @@ int volume(struct block *b) {
     if (!(unmuted)) icon = volume_icons[0];
     else if (volp <= 0.3) icon = volume_icons[1];
     snprintf(b->full_text, sizeof b->full_text,
-            "%s%.2g%%", icon, 100*volp);
+            "%s%.0lf%%", icon, 100*volp);
     snprintf(b->short_text, sizeof b->short_text,
-            "%.2g%%", 100*volp);
+            "%.0lf%%", 100*volp);
     snprintf(b->color, sizeof b->color, "%s", (unmuted) ? "" : base0A);
     b->urgent = 0;
     err = 0;

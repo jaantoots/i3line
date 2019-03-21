@@ -75,9 +75,9 @@ int backlight(struct block *b) {
 
     /* print backlight */
     snprintf(b->full_text, sizeof b->full_text,
-            "%s%.2lf%%", backlight_icon, (double)100*cur/max);
+            "%s%.0lf%%", backlight_icon, (double)100*cur/max);
     snprintf(b->short_text, sizeof b->short_text,
-            "%.2lf%%", (double)100*cur/max);
+            "%.0lf%%", (double)100*cur/max);
     snprintf(b->color, sizeof b->color, "%s", "");
     b->urgent = (cur == 0 || max == 0) ? 1 : 0;
     return 0;
