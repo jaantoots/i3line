@@ -57,7 +57,7 @@ int battery(struct block *b) {
     int low = BAT_LOW;
     int critical = BAT_CRITICAL;
     int urgent = BAT_URGENT;
-    if (!strcmp(status, "Charging")) {
+    if (!strcmp(status, "Charging") && current_now > 0) {
         icon = power_icons[1];
         time = 3600*(charge_full - charge_now)/current_now;
     }
@@ -65,14 +65,14 @@ int battery(struct block *b) {
         icon = power_icons[2];
         color = base0B;
     }
-    else if (!strcmp(status, "Discharging")) {
+    else if (!strcmp(status, "Discharging") && current_now > 0) {
         icon = battery_icons[(capacity + 12)/25];
         time = 3600*charge_now/current_now;
         if (capacity <= critical) color = base08;
         else if (capacity <= low) color = base0A;
     }
     free(status);
-    double percent = (double)100*charge_now/charge_full;
+    double percent = (charge_full > 0) ? (double)100*charge_now/charge_full : 0;
     double power = (double)voltage_now*current_now/1e12;
     if (time)
         snprintf(b->full_text, sizeof b->full_text,
