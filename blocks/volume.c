@@ -34,14 +34,14 @@ int volume(struct block *b) {
 
     /* find the mixer */
     snd_mixer_selem_id_t *sid;
-    snd_mixer_selem_id_alloca(&sid);
-    if (sid == NULL) goto err;
+    if (snd_mixer_selem_id_malloc(&sid)) goto err;
     err = -2;
     const char *selem_name = "Master";
     snd_mixer_selem_id_set_index(sid, 0);
     snd_mixer_selem_id_set_name(sid, selem_name);
-    snd_mixer_elem_t* elem;
-    if (!(elem = snd_mixer_find_selem(mixer, sid))) goto err;
+    snd_mixer_elem_t* elem = snd_mixer_find_selem(mixer, sid);
+    snd_mixer_selem_id_free(sid);
+    if (!(elem)) goto err;
 
     /* get the volume */
     long min, max;
