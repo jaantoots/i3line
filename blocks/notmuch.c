@@ -41,6 +41,7 @@ int notmuch(struct block *b) {
     notmuch_status_t st = notmuch_query_count_messages(query, &count);
     notmuch_query_destroy(query);
     notmuch_database_close(db);
+    notmuch_database_destroy(db);
     if (st != NOTMUCH_STATUS_SUCCESS) return -1;
 
     /* format block */
