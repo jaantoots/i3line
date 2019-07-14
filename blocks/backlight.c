@@ -25,10 +25,12 @@
 #define INC 0.01
 #define REPEAT 5
 
-static int set_backlight(int *cur, int new, int max) {
-    FILE *fset = fopen(BACKLIGHT "/brightness", "w");
+static int set_backlight(const char *dir, int *cur, int new) {
+    char name[MAX_LEN];
+    snprintf(name, sizeof name, "%s/%s", dir, "brightness");
+    FILE *fset = fopen(name, "w");
     if (fset == NULL) {
-        perror("fopen()");
+        perror(name);
         return (errno == EACCES) ? -EACCES : -1;
     }
     fprintf(fset, "%d", new);
@@ -60,7 +62,7 @@ int backlight(struct block *b) {
         case 3:
             if (cur > max/3) new = max/3;
             else if (b->state < 0) new = 1;
-            if (set_backlight(&cur, new, max) > 0) b->state = REPEAT;
+            if (set_backlight(b->path, &cur, new) > 0) b->state = REPEAT;
             break;
         case 4:
             inc = -INC;
@@ -69,7 +71,7 @@ int backlight(struct block *b) {
             if (new - cur == 0) new = cur + (inc > 0) ? 1 : -1;
             if (new <= 0) new = 1;
             if (new > max) new = max;
-            set_backlight(&cur, new, max);
+            set_backlight(b->path, &cur, new);
             break;
     }
 
