@@ -176,9 +176,11 @@ wait:;
             /* positive return value means stdin should be ready */
             char *line = NULL;
             size_t n = 0;
-            if (getline(&line, &n, stdin) != -1) update(line);
+            ssize_t read = getline(&line, &n, stdin);
+            if (read != -1) update(line);
             free(line);
-            goto wait; // skip the empty update
+            if (read != -1) goto wait; // skip the empty update
+            break; // end-of-file
         }
     }
     /* finalize output */
