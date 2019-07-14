@@ -47,8 +47,8 @@ int notmuch(struct block *b) {
     /* format block */
     const unsigned int high = 8;
     const unsigned int critical = 16;
-    snprintf(b->full_text, sizeof b->full_text, "%s%d", mail_icon, count);
-    snprintf(b->short_text, sizeof b->short_text, "%d", count);
+    snprintf(b->full_text, sizeof b->full_text, "%s%u", mail_icon, count);
+    snprintf(b->short_text, sizeof b->short_text, "%u", count);
     snprintf(b->color, sizeof b->color, "%s",
             (count > critical) ? base08 : (count > high) ? base0A : "");
     b->urgent = 0;

@@ -35,7 +35,7 @@ static int fscan_value(const char *dir, const char *fname,
     if (fscanf(file, fmt, value) < 0) err = -1;
     if (ferror(file)) {
         perror(name);
-        return -1;
+        err = -1;
     }
     fclose(file);
     return err;

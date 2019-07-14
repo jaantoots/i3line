@@ -68,7 +68,7 @@ int backlight(struct block *b) {
             inc = -INC;
         case 5:
             new = (1 + inc)*cur;
-            if (new - cur == 0) new = cur + (inc > 0) ? 1 : -1;
+            if (new == cur) new += (inc > 0) ? 1 : -1;
             if (new <= 0) new = 1;
             if (new > max) new = max;
             set_backlight(b->path, &cur, new);
