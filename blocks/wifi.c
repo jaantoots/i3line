@@ -84,8 +84,10 @@ ifaddr_error:
 
 
 static int get_wireless_device(struct block *b) {
-    if (strlen(b->instance)) {
-        strncpy(b->path, b->instance, sizeof b->path);
+    size_t len = strlen(b->instance);
+    if (len) {
+        if (len + 1 > sizeof b->path) return -1;
+        strcpy(b->path, b->instance);
         return 0;
     }
     /* find wireless devices */
