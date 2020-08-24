@@ -46,7 +46,9 @@ int battery(struct block *b) {
             fscan_value(b->path, "energy_now", "%Ld", &charge_now)) return -2;
     if (fscan_value(b->path, "voltage_now", "%Ld", &voltage_now)) return -1;
     if (fscan_value(b->path, "current_now", "%Ld", &current_now)) {
-        if (fscan_value(b->path, "power_now", "%Ld", &current_now)) return -2;
+        if (fscan_value(b->path, "power_now", "%Ld", &current_now)) {
+            current_now = 0;
+        }
         voltage_now = 1e6;
     }
 
